@@ -1,0 +1,33 @@
+Root Cause Analysis: Release 1.99 Incident
+
+Incident Overview: During the weekend release of 1.99, a dot release (1.99.8) was scheduled to be deployed on Friday evening. However, due to configuration issues in the Jules pipeline, instead of deploying 1.98.3, the system began deploying 1.99. The SRE on-call resource promptly identified the issue and stopped the deployment within 15 minutes of receiving the credentials, preventing further damage.
+
+Root Cause: The root cause of this incident is attributed to the AD team’s failure to follow standard validation processes during the release configuration for version 1.98.3. Specifically:
+
+The AD team incorrectly provided the release folder details for version 1.99 in the Jules pipeline manifest file (application.yml), rather than the intended 1.98.3 release folder.
+The AD team did not adequately validate the deployment in UAT. Logs from the UAT deployment could have highlighted the issue by showing that the 1.99 pipeline was running instead of 1.98.3.
+The UAT sign-off was provided without a proper review of how the deployment had progressed. Additionally, the team submitted ECB (Enterprise Change Board) evidence stating they had tested the release and received approval, despite not having followed the correct procedures.
+Failure Points:
+
+Misconfiguration in Jules Manifest: The Jules pipeline configuration file contained incorrect release folder details. The AD team did not validate that the 1.98.3 deployment configuration was correct, and the wrong version folder (1.99) was used.
+
+UAT Validation Neglected: The AD team failed to monitor UAT deployment logs, which would have shown the issue early. Furthermore, database validations were not properly conducted. While 1.98.3 was a PROD-only fix and certain data was unavailable in UAT, every deployed Jules script is recorded in the databasechangelog table, which could have been cross-checked for validation.
+
+ECB Approval without Due Diligence: The team submitted ECB approval evidence despite not conducting the required validations. This rushed approval process led to an incomplete and inaccurate release process.
+
+SRE Actions: The SRE team:
+
+Validated that the Jules pipeline was intended for version 1.98.3 prior to deployment.
+Verified that the ECB was approved and checked whether the release changes were properly associated with the version.
+During the deployment, the SRE resource used the same SNOW ticket that was linked to the ECB approval.
+Impact: Due to this misconfiguration, instead of deploying 1.98.3, version 1.99 code was partially deployed before the SRE team intervened to stop the process. Several scripts had already been executed on the database, and despite the SRE resource’s quick response, partial changes had already been applied. To contain the damage:
+
+The SRE team coordinated with L1 and brought down all services, including the CORE application, to prevent further issues.
+The CORE team had to rerun a critical user job to ensure no user-related reconciliation breaks occurred. The job was rescheduled and executed at 12 AM ET on 9/21, following standard practice.
+Conclusion: This incident could have been avoided had the AD team adhered to the proper deployment and validation processes. Their failure to:
+
+Properly configure the release folder in the Jules manifest,
+Validate the deployment in UAT,
+Cross-check UAT deployment logs and the databasechangelog table,
+And ensure that ECB approval was based on accurate validations, all contributed to the failure.
+The inefficiencies in AD team practices and the lack of due diligence in following the established procedures directly led to the incident, with SRE having to step in to mitigate further damage.
