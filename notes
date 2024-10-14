@@ -1,23 +1,23 @@
 What’s the issue?
-During the release weekend of version 1.99, a dot release (1.99.8) was scheduled to be deployed on Friday evening. Due to a configuration issue in the Jules pipeline, the system began deploying version 1.99 instead of the intended 1.98.3. The SRE team identified the issue and stopped the deployment within 15 minutes of receiving the credentials.
+During the release weekend of version 1.99, a dot release (1.99.8) was scheduled for deployment on Friday evening. However, due to a configuration issue in the Jules pipeline, version 1.99 started deploying instead of the intended 1.98.3. The SRE team identified the issue and stopped the deployment within 15 minutes.
 
 Cause of the issue?
 
-The AD team misconfigured the release folder details in the Jules pipeline manifest (application.yml) for version 1.98.3. Instead of pointing to the 1.98.3 folder, the configuration pointed to the 1.99 release folder.
-UAT validation was not performed properly by the AD team. UAT deployment logs, which could have highlighted the issue, were not monitored. Additionally, database changes were not verified in UAT, even though the databasechangelog table records all deployed scripts, which would have revealed the error.
-The team submitted ECB approval without fully validating the UAT deployment, providing inaccurate evidence of testing and approval.
+The Jules pipeline manifest had incorrect release folder details for version 1.98.3, which led to version 1.99 being deployed instead.
+The validation process for the UAT deployment didn’t catch this misconfiguration. Monitoring UAT deployment logs or reviewing the databasechangelog table could have revealed the issue early.
+ECB approval was granted based on evidence that didn’t fully account for the need to validate UAT deployment and check for potential misconfigurations.
 Steps done for mitigation?
 
-The SRE team identified the misconfiguration and halted the deployment process, preventing further execution of the 1.99 scripts.
-Coordinated with L1 to bring down all services, including CORE APP, to prevent any downstream impact.
-To avoid user-related reconciliation issues, the CORE team reran a critical user job at 12 AM ET on 9/21, ensuring the latest data snapshot was created as per standard practice.
+The SRE team quickly halted the deployment after discovering the issue, limiting the impact of the misconfiguration.
+SRE worked with L1 to bring down all affected services, including the CORE application, to prevent further execution of incorrect scripts.
+The CORE team rescheduled and reran a critical user job to ensure no user-related reconciliation breaks occurred, maintaining data integrity.
 Lesson learnt?
 
-Misconfigurations in pipeline manifests need thorough validation.
-Proper UAT deployment monitoring and validation, including log checks and databasechangelog table reviews, must be conducted before sign-off.
-ECB approval should be based on accurate and complete testing, and the approval process should not be rushed.
+Configuration management in deployment pipelines is a critical step and should be verified across all environments before releases.
+UAT deployment logs and database change logs (such as the databasechangelog table) should be actively monitored and reviewed during the validation process.
+Approval processes (like ECB) need to ensure all validations and testing are fully completed and checked before being finalized.
 Action items?
 
-Update deployment and validation procedures to ensure accurate manifest configurations and cross-checks in UAT.
-Implement stricter monitoring of UAT deployment logs and database validations.
-Establish additional review steps before submitting ECB evidence to prevent unvalidated approvals.
+Implement improved configuration checks in the pipeline to avoid misconfigurations in future releases.
+Enhance UAT validation practices by introducing mandatory log monitoring and database validation.
+Refine the release approval process to ensure thorough validation steps are taken before sign-off.
